@@ -9,10 +9,9 @@ def clean():
     servername_and_dataframe = {}
     for _, name_df_tuple in wacraft_server_activity.items():
         server_name, dataframe = name_df_tuple
-        server_name = re.sub(r" - [A-Z]{2,}", '', server_name)  # Clean server name
-        if 'EU' in server_name:
-            server_name = re.sub(r"EU-", '', server_name)
-            server_name = re.sub(r'\(.*\)', '', server_name)
+        server_name = re.sub(r" ?- ?[A-Z]{2,}", '', server_name)  # Clean server name
+
+        server_name = re.sub(r"EU-", '', server_name)
         server_name = server_name.strip()
         dataframe = dataframe.drop(["alliance_entries", 'horde_entries'], axis=1).replace(np.nan, 1)
 
@@ -26,4 +25,6 @@ def clean():
         servername_and_dataframe.pop(key)
 
     pickle.dump(servername_and_dataframe, open('cleaned_server_activity.p', 'wb'))
+
+
 clean()
