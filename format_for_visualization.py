@@ -1,6 +1,7 @@
 import pickle
 import pandas as pd
 import numpy as np
+from copy import deepcopy
 
 cleaned_series = pickle.load(open('cleaned_server_activity.p', 'rb'))
 blizz_realms_us = pickle.load(open('blizz_realms_us.p', 'rb'))['realms']
@@ -27,3 +28,6 @@ for timezone in timezone_dict:
             continue
     averaged_timezone_dict[timezone] = running_avg / len(timezone_dict[timezone])
 
+for timezone in averaged_timezone_dict:
+    averaged_timezone_dict[timezone] = averaged_timezone_dict[timezone].replace(0, np.nan).interpolate('index')
+pickle.dump(averaged_timezone_dict, open("timezone_series_us.p", 'wb'))
