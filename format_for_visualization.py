@@ -2,6 +2,7 @@ import pickle
 import pandas as pd
 import numpy as np
 from datetime import datetime
+from didyoumean.didyoumean import didYouMean
 from copy import deepcopy
 
 cleaned_server_activity = pickle.load(open('cleaned_server_activity.p', 'rb'))
@@ -94,47 +95,48 @@ def format_for_visualization(cleaned_server_activity, local_entity, continent_ab
 # pickle.dump(averaged_timezone_dict, open("timezone_series_us.p", 'wb'))
 #
 #
-# # EU
-# cleaned_server_activity = pickle.load(open('cleaned_server_activity.p', 'rb'))
-# blizz_realms_eu = pickle.load(open('blizz_realms_eu.p', 'rb'))['realms']
-# blizz_realms_and_timezone_eu = [(blizz_realms_eu[i]['name'], blizz_realms_eu[i]['locale'])
-#                                 for i in range(len(list(blizz_realms_eu)))]
-# blizz_realms_and_timezone_eu = pd.DataFrame(blizz_realms_and_timezone_eu, columns=['server_name', 'locale'])
-# timezone_dict = blizz_realms_and_timezone_eu.groupby("locale").groups
-# blizz_server_names = blizz_realms_and_timezone_eu['server_name'].tolist()
-#
-# # Create a dict with locale as key and server names as values (indestead of index)
-# timezone_dict_to_convert = deepcopy(timezone_dict)
-# timezone_dict = {}
-# for key in timezone_dict_to_convert.keys():
-#     timezone_dict[key] = blizz_realms_and_timezone_eu.iloc[
-#         timezone_dict_to_convert[key].tolist()]['server_name'].tolist()
-#
-# averaged_timezone_dict = {}
-# for timezone in timezone_dict:
-#     running_avg = pd.Series(np.zeros(24))
-#     for server in timezone_dict[timezone]:
-#         try:
-#             running_avg += cleaned_server_activity[server]
-#         except KeyError:
-#             try:
-#                 server = didYouMean(server, cleaned_server_activity.keys())
-#                 running_avg += cleaned_server_activity[server]
-#             except KeyError:
-#                 continue
-#     running_avg = running_avg / len(timezone_dict[timezone])
-#     index = running_avg.index.values.tolist()
-#     index = list(map(lambda x: (x + time_shift[timezone]) % 24, index))
-#     running_avg.index = index
-#     running_avg = running_avg.sort_index()
-#     averaged_timezone_dict[timezone] = running_avg
-#
-# for timezone in averaged_timezone_dict:
-#     averaged_timezone_dict[timezone] = averaged_timezone_dict[timezone].replace(0, np.nan).interpolate('index')
-# pickle.dump(averaged_timezone_dict, open('timezone_series_eu.p', 'wb'))
+# EU
+cleaned_server_activity = pickle.load(open('cleaned_server_activity.p', 'rb'))
+blizz_realms_eu = pickle.load(open('blizz_realms_eu.p', 'rb'))['realms']
+blizz_realms_and_timezone_eu = [(blizz_realms_eu[i]['name'], blizz_realms_eu[i]['locale'])
+                                for i in range(len(list(blizz_realms_eu)))]
+blizz_realms_and_timezone_eu = pd.DataFrame(blizz_realms_and_timezone_eu, columns=['server_name', 'locale'])
+timezone_dict = blizz_realms_and_timezone_eu.groupby("locale").groups
+blizz_server_names = blizz_realms_and_timezone_eu['server_name'].tolist()
 
-# Merge and convert index to datetime
+# Create a dict with locale as key and server names as values (indestead of index)
+timezone_dict_to_convert = deepcopy(timezone_dict)
+timezone_dict = {}
+for key in timezone_dict_to_convert.keys():
+    timezone_dict[key] = blizz_realms_and_timezone_eu.iloc[
+        timezone_dict_to_convert[key].tolist()]['server_name'].tolist()
 
+averaged_timezone_dict = {}
+for timezone in timezone_dict:
+    running_avg = pd.Series(np.zeros(24))
+    for server in timezone_dict[timezone]:
+        try:
+            running_avg += cleaned_server_activity[server]
+        except KeyError:
+            try:
+                server = didYouMean(server, cleaned_server_activity.keys())
+                running_avg += cleaned_server_activity[server]
+            except KeyError:
+                continue
+    running_avg = running_avg / len(timezone_dict[timezone])
+    index = running_avg.index.values.tolist()
+    index = list(map(lambda x: (x + time_shift[timezone]) % 24, index))
+    running_avg.index = index
+    running_avg = running_avg.sort_index()
+    averaged_timezone_dict[timezone] = running_avg
+
+for timezone in averaged_timezone_dict:
+    averaged_timezone_dict[timezone] = averaged_timezone_dict[timezone].replace(0, np.nan).interpolate('index')
+pickle.dump(averaged_timezone_dict, open('timezone_series_eu.p', 'wb'))
+
+
+
+#Merge and convert index to datetime
 
 format_for_visualization(cleaned_server_activity, 'timezone', 'us')
 format_for_visualization(cleaned_server_activity, 'locale', 'eu')
